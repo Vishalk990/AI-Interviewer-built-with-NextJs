@@ -17,6 +17,7 @@ import { db } from "@/utils/db";
 import { MockInterview } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
+import { useRouter } from "next/navigation";
 
 function AddNewInterview() {
   const [openDialog, setOpenDialog] = useState(false);
@@ -27,6 +28,7 @@ function AddNewInterview() {
   const [jsonResponse, setJsonResponse] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
   const { user } = useUser();
 
   const onSubmit = async (e) => {
@@ -69,6 +71,8 @@ function AddNewInterview() {
           setJobDesc("");
           setJobExperience("");
           setOpenDialog(false);
+
+          router.push(`dashboard/interview/${resp[0]?.mockId}`)
         }
       } catch (error) {
         console.error("Error:", error);
@@ -107,6 +111,7 @@ function AddNewInterview() {
                   <div className="mt-7 my-3">
                     <label>Job Role/Position</label>
                     <Input
+                      className="my-2"
                       placeholder="Ex. Full Stack Developer"
                       required
                       value={jobPosition}
@@ -116,6 +121,7 @@ function AddNewInterview() {
                   <div className="my-3">
                     <label>Job Description/Tech Stack(In Short)</label>
                     <Textarea
+                      className="my-2"
                       placeholder="Ex. React, Angular, NodeJs, NextJs"
                       required
                       value={jobDesc}
@@ -125,6 +131,7 @@ function AddNewInterview() {
                   <div className="my-3">
                     <label>Years of Experience</label>
                     <Input
+                      className="my-2"
                       placeholder="Ex. 5"
                       type="number"
                       required
