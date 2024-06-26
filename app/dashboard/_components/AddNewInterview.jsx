@@ -1,4 +1,5 @@
 "use client";
+import { v4 as uuidv4 } from "uuid";
 import React, { useState } from "react";
 import {
   Dialog,
@@ -11,32 +12,70 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { chatSession } from "@/utils/GeminiAIModel";
+import { LoaderCircle } from "lucide-react";
+import { db } from "@/utils/db";
+import { MockInterview } from "@/utils/schema";
+import { useUser } from "@clerk/nextjs";
+import moment from "moment";
 
 function AddNewInterview() {
   const [openDialog, setOpenDialog] = useState(false);
-
   const [jobPosition, setJobPosition] = useState("");
   const [jobDesc, setJobDesc] = useState("");
   const [jobExperience, setJobExperience] = useState("");
 
+  const [jsonResponse, setJsonResponse] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const { user } = useUser();
+
   const onSubmit = async (e) => {
     e.preventDefault();
     if (jobPosition && jobDesc && jobExperience) {
-      console.log(jobPosition, jobDesc, jobExperience);
-      setOpenDialog(false);
+      setLoading(true);
 
       const InputPrompt =
         `Job Position : ${jobPosition}, Job Description: ${jobDesc}, Years of Experience: ${jobExperience}. Depending on this Job Position,Job Description & Years of Experience give us ` +
         process.env.NEXT_PUBLIC_INTERVIEW_QUESTION_COUNT +
-        ` interview question along with answer in JSON format, Give us Question and Answered field in JSON`;
+        ` interview question along with answer in JSON format, Give us Question and Answered field in JSON. Dont Give Explanation of Questions and Answers seperately. Just Give Questions and answers in JSON format`;
 
-      const result = await chatSession.sendMessage(InputPrompt);
-      const mockJsonResponse = await result.json();
-      console.log(mockJsonResponse);
+      try {
+        const result = await chatSession.sendMessage(InputPrompt);
+        console.log(result.response.text());
+        const mockJsonResponse = result.response
+          .text()
+          .replace("```json", "")
+          .replace("```", "");
+        console.log(JSON.parse(mockJsonResponse));
+        setJsonResponse(mockJsonResponse);
 
-      setJobPosition("");
-      setJobDesc("");
-      setJobExperience("");
+        if (mockJsonResponse) {
+          const resp = await db
+            .insert(MockInterview)
+            .values({
+              mockId: uuidv4(),
+              jsonMockResponse: mockJsonResponse,
+              jobPosition: jobPosition,
+              jobDesc: jobDesc,
+              jobExperience: jobExperience,
+              createdBy: user?.primaryEmailAddress?.emailAddress,
+              createdAt: moment().format("DD-MM-YYYY"),
+            })
+            .returning({ mockId: MockInterview.mockId });
+
+          console.log("Inserted ID : ", resp);
+
+          setJobPosition("");
+          setJobDesc("");
+          setJobExperience("");
+          setOpenDialog(false);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred while processing your request.");
+      } finally {
+        setLoading(false);
+      }
     } else {
       alert("Please fill in all required fields.");
     }
@@ -100,10 +139,20 @@ function AddNewInterview() {
                     type="button"
                     variant="ghost"
                     onClick={() => setOpenDialog(false)}
+                    disabled={loading}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">Start Interview</Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                        Generating from AI
+                      </>
+                    ) : (
+                      "Start Interview"
+                    )}
+                  </Button>
                 </div>
               </form>
             </DialogDescription>
