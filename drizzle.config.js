@@ -4,6 +4,6 @@ export default defineConfig({
   schema: "./utils/schema.js",
   out: "./drizzle",
   dbCredentials: {
-    url: "postgresql://neondb_owner:n8UWlaTbBr9E@ep-wild-smoke-a55ghyzx.us-east-2.aws.neon.tech/ai-interview-mocker?sslmode=require",
+    url: process.env.NEXT_PUBLIC_DRIZZLE_DB_URL,
   }
 });
