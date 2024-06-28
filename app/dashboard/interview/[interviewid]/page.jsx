@@ -70,21 +70,21 @@ function Interview({ params }) {
               }}
             />
           ) : (
-            <>
+            <div className="flex flex-col">
               <WebcamIcon className="h-72 w-full my-7 p-20 bg-secondary rounded-lg border" />
               <Button
                 variant="ghost"
-                className="w-full"
+                className="mx-32 hover:bg-black hover:text-white"
                 onClick={() => setWebCamEnabled(true)}
               >
                 Enable Web Cam and MicroPhone
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="flex justify-end items-end">
+      <div className="flex justify-end mt-16 items-end">
         <Link href={`/dashboard/interview/${params.interviewid}/start`}>
           <Button>Start Interview</Button>
         </Link>

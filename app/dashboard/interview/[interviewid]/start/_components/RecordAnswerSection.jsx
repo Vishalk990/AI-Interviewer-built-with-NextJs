@@ -24,6 +24,7 @@ function RecordAnswerSection({
     results,
     startSpeechToText,
     stopSpeechToText,
+    setResults,
   } = useSpeechToText({
     continuous: true,
     useLegacyResults: false,
@@ -94,8 +95,10 @@ function RecordAnswerSection({
 
     if (resp) {
       toast("User Answer recorded successfully");
+      setUserAnswer("");
+      setResults([]);
     }
-    setUserAnswer("");
+    setResults([]);
     setLoading(false);
   };
 
@@ -132,7 +135,7 @@ function RecordAnswerSection({
           "Record Answer"
         )}
       </Button>
-      {/* <Button onClick={() => console.log(userAnswer)}>Show User Answer</Button> */}
+      <Button onClick={() => console.log(userAnswer)}>Show User Answer</Button>
     </div>
   );
 }
